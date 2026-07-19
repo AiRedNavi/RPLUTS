@@ -74,16 +74,23 @@ class WorldBankService
             $country = $localCountries[$iso3];
             $year = $data['year'] ?? ((int) date('Y') - 1);
 
+            // PENTING: hanya masukkan field yang BENAR-BENAR berhasil
+            // diambil di run ini (array_key_exists, bukan ?? null).
+            // Kalau salah satu indikator gagal fetch (timeout, dll),
+            // field itu tidak disertakan sama sekali di $payload,
+            // sehingga updateOrCreate() TIDAK menimpa nilai lama yang
+            // sudah berhasil tersimpan dari run sebelumnya dengan null.
+            $payload = ['source' => 'World Bank API'];
+
+            foreach (['gdp', 'inflation_rate', 'population', 'export_value', 'import_value'] as $field) {
+                if (array_key_exists($field, $data)) {
+                    $payload[$field] = $data[$field];
+                }
+            }
+
             EconomicIndicator::updateOrCreate(
                 ['country_id' => $country->id, 'year' => $year],
-                [
-                    'gdp' => $data['gdp'] ?? null,
-                    'inflation_rate' => $data['inflation_rate'] ?? null,
-                    'population' => $data['population'] ?? null,
-                    'export_value' => $data['export_value'] ?? null,
-                    'import_value' => $data['import_value'] ?? null,
-                    'source' => 'World Bank API',
-                ]
+                $payload
             );
 
             $synced++;

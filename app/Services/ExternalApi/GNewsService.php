@@ -50,11 +50,28 @@ class GNewsService
         $synced = 0;
 
         foreach ($this->categoryQueries as $category => $query) {
-            $synced += $this->syncCategory($category, $query);
+            $result = $this->syncCategory($category, $query);
+
+            if ($result === self::RATE_LIMITED) {
+                Log::warning('GNewsService: berhenti sinkronisasi karena kena rate limit (429). Sisa kategori dilewati untuk hemat kuota.');
+                break; // stop, jangan buang sisa kuota nyoba kategori lain yang pasti gagal juga
+            }
+
+            $synced += $result;
+
+            // Jeda singkat antar kategori supaya tidak langsung kena
+            // rate limit "request per detik" dari GNews.
+            usleep(500000); // 0.5 detik
         }
 
         return $synced;
     }
+
+    /**
+     * Penanda khusus: dipakai syncAllCategories() untuk tahu kapan harus
+     * berhenti lebih awal karena API sudah menolak request (429).
+     */
+    protected const RATE_LIMITED = -1;
 
     public function syncCategory(string $category, string $query): int
     {
@@ -77,6 +94,14 @@ class GNewsService
             );
 
             if (! $response->successful()) {
+                if ($response->status() === 429) {
+                    Log::warning('GNewsService: kena rate limit (429) dari GNews API.', [
+                        'category' => $category,
+                    ]);
+
+                    return self::RATE_LIMITED;
+                }
+
                 Log::warning('GNewsService: gagal fetch berita', [
                     'category' => $category,
                     'status' => $response->status(),

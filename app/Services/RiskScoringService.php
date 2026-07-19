@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Models\Country;
+use App\Models\Currency;
 use App\Models\ExchangeRateHistory;
 use App\Models\NewsArticle;
 use App\Models\RiskScore;
@@ -178,6 +179,13 @@ class RiskScoringService
      * terakhir kurs mata uang negara ini terhadap basis (USD).
      * Semakin besar persentase fluktuasi (max-min terhadap rata-rata),
      * semakin tinggi skornya. 10% fluktuasi dianggap risiko maksimal (100).
+     *
+     * PENTING: basis SELALU dikunci ke USD di sini. Kalau tidak dikunci,
+     * dan exchange_rate_history kebetulan berisi campuran basis berbeda
+     * (mis. kamu pernah jalankan fetch:exchange-rates --base=EUR selain
+     * --base=USD), maka baris-baris dengan basis berbeda akan tercampur
+     * dan dianggap "fluktuasi harian" padahal cuma beda basis perbandingan
+     * -> hasilnya selalu melonjak ke skor maksimal (100) yang salah.
      */
     protected function currencyRiskScore(Country $country): float
     {
@@ -185,13 +193,26 @@ class RiskScoringService
             return 50;
         }
 
-        $rates = ExchangeRateHistory::where('target_currency_id', $country->currency_id)
+        $usdCurrencyId = Currency::where('code', 'USD')->value('id');
+
+        if (! $usdCurrencyId) {
+            return 50; // currency USD belum ada di database sama sekali
+        }
+
+        // Kalau negara ini mata uangnya USD sendiri, tidak ada perbandingan
+        // yang relevan (base == target), anggap netral/stabil.
+        if ($country->currency_id === $usdCurrencyId) {
+            return 15;
+        }
+
+        $rates = ExchangeRateHistory::where('base_currency_id', $usdCurrencyId)
+            ->where('target_currency_id', $country->currency_id)
             ->orderByDesc('recorded_date')
             ->limit(7)
             ->pluck('rate');
 
         if ($rates->count() < 2) {
-            return 50; // data histori belum cukup -> netral
+            return 50; // data histori belum cukup (perlu beberapa hari fetch:exchange-rates) -> netral
         }
 
         $max = (float) $rates->max();
