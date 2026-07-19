@@ -34,5 +34,11 @@ return [
             'channel' => env('SLACK_BOT_USER_DEFAULT_CHANNEL'),
         ],
     ],
+    'exchangerate' => [
+        'key' => env('EXCHANGERATE_API_KEY')
+        ],
+    'gnews' => [
+        'key' => env('GNEWS_API_KEY')
+        ],
 
 ];

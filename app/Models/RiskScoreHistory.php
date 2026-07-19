@@ -10,6 +10,12 @@ class RiskScoreHistory extends Model
 {
     use HasFactory;
 
+    /**
+     * Nama tabel sengaja singular ('risk_score_history', bukan
+     * 'risk_score_histories') sesuai migration.
+     */
+    protected $table = 'risk_score_history';
+
     public $timestamps = false;
 
     protected $fillable = [

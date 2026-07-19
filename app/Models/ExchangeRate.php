@@ -10,6 +10,13 @@ class ExchangeRate extends Model
 {
     use HasFactory;
 
+    /**
+     * Tabel exchange_rates cuma punya kolom fetched_at, tidak punya
+     * created_at/updated_at. Eloquent secara default selalu mencoba
+     * mengisi keduanya otomatis, jadi harus dimatikan di sini.
+     */
+    public $timestamps = false;
+
     protected $fillable = [
         'base_currency_id',
         'target_currency_id',

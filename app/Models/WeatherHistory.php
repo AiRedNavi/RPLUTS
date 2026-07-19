@@ -10,6 +10,13 @@ class WeatherHistory extends Model
 {
     use HasFactory;
 
+    /**
+     * Nama tabel sengaja singular ('weather_history', bukan
+     * 'weather_histories') sesuai migration. Eloquent secara default
+     * akan menebak nama plural, jadi harus di-set manual di sini.
+     */
+    protected $table = 'weather_history';
+
     public $timestamps = false;
 
     protected $fillable = [

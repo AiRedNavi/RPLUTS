@@ -10,6 +10,12 @@ class ExchangeRateHistory extends Model
 {
     use HasFactory;
 
+    /**
+     * Nama tabel sengaja singular ('exchange_rate_history', bukan
+     * 'exchange_rate_histories') sesuai migration.
+     */
+    protected $table = 'exchange_rate_history';
+
     public $timestamps = false;
 
     protected $fillable = [
