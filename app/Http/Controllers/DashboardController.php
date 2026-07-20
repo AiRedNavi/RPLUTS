@@ -34,4 +34,19 @@ class DashboardController extends Controller
     {
         return view('dashboard.currency');
     }
+
+    public function news(): View
+    {
+        return view('dashboard.news');
+    }
+
+     public function ports(): View
+    {
+        return view('dashboard.ports');
+    }
+
+       public function comparison(): View
+    {
+        return view('dashboard.comparison');
+    }
 }

@@ -11,13 +11,19 @@
 
         .tw-rate-table th, .tw-rate-table td {
             border-color: var(--ink-750) !important;
-            color: var(--paper);
+            background-color: transparent !important;
+            color: var(--paper) !important;
             font-size: 0.88rem;
             vertical-align: middle;
         }
 
+        .tw-rate-table,
+        .tw-rate-table > :not(caption) > * > * {
+            background-color: transparent !important;
+        }
+
         .tw-rate-table th {
-            color: var(--mist);
+            color: var(--mist) !important;
             font-weight: 500;
             font-size: 0.75rem;
             text-transform: uppercase;

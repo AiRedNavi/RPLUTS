@@ -244,11 +244,11 @@
     <nav class="tw-navbar">
         <div class="container-fluid px-4 d-flex align-items-center justify-content-between flex-wrap gap-2">
             <div class="d-flex align-items-center gap-4">
-                <a href="{{ url('/') }}" class="tw-brand">TRADE<span>WATCH</span></a>
+                <a href="{{ url('/') }}" class="tw-brand">ASTRAL<span>MONITOR</span></a>
                 <div class="d-none d-lg-flex gap-1">
                     <a href="{{ url('/') }}" class="tw-nav-link active">Dashboard</a>
                     <a href="{{ url('/weather') }}" class="tw-nav-link">Cuaca</a>
-                    <a href="{{ url('/currency') }}" class="tw-nav-link">Kurs</a>
+                    <a href="{{ url('/currency') }}" class="tw-nav-link">Kurensi</a>
                     <a href="{{ url('/news') }}" class="tw-nav-link">Berita</a>
                     <a href="{{ url('/ports') }}" class="tw-nav-link">Pelabuhan</a>
                     <a href="{{ url('/comparison') }}" class="tw-nav-link">Bandingkan</a>
