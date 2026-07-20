@@ -38,114 +38,6 @@
     }
 
     /* ============================================================
-       SPLIT-FLAP HERO
-       ============================================================ */
-    .splitflap-hero {
-        background: var(--bg-panel);
-        border: 1px solid rgba(79, 209, 197, 0.12);
-        border-radius: 16px;
-        padding: 24px 32px;
-        margin-bottom: 32px;
-        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
-        position: relative;
-        overflow: hidden;
-    }
-
-    .splitflap-hero::before {
-        content: '';
-        position: absolute;
-        top: -50%;
-        left: -50%;
-        width: 200%;
-        height: 200%;
-        background: radial-gradient(circle at 30% 40%, rgba(79, 209, 197, 0.03), transparent 70%);
-        pointer-events: none;
-    }
-
-    .splitflap-label {
-        font-family: var(--font-mono);
-        font-size: 0.7rem;
-        letter-spacing: 0.15em;
-        text-transform: uppercase;
-        color: var(--text-muted);
-        margin-bottom: 12px;
-        display: flex;
-        align-items: center;
-        gap: 12px;
-    }
-
-    .splitflap-label .pulse-dot {
-        width: 8px;
-        height: 8px;
-        border-radius: 50%;
-        background: var(--signal-green);
-        animation: pulse-dot 2s ease-in-out infinite;
-        display: inline-block;
-    }
-
-    @keyframes pulse-dot {
-        0%, 100% { opacity: 1; transform: scale(1); }
-        50% { opacity: 0.3; transform: scale(0.8); }
-    }
-
-    .splitflap-track {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 8px 16px;
-        align-items: center;
-    }
-
-    .splitflap-item {
-        display: flex;
-        align-items: center;
-        gap: 6px;
-        font-family: var(--font-display);
-        font-weight: 600;
-        font-size: 1.1rem;
-        background: var(--bg-navy);
-        padding: 6px 14px 6px 10px;
-        border-radius: 6px;
-        border-left: 3px solid var(--signal-cyan);
-        letter-spacing: 0.02em;
-    }
-
-    .splitflap-item .flap-number {
-        font-family: var(--font-mono);
-        font-weight: 600;
-        font-size: 1.1rem;
-        color: var(--signal-cyan);
-        min-width: 28px;
-        text-align: center;
-        background: rgba(79, 209, 197, 0.08);
-        padding: 0 6px;
-        border-radius: 4px;
-    }
-
-    .splitflap-item .flap-country {
-        color: var(--text-primary);
-    }
-
-    .splitflap-item .flap-score {
-        font-family: var(--font-mono);
-        font-size: 0.85rem;
-        font-weight: 600;
-        padding: 2px 10px;
-        border-radius: 12px;
-        background: rgba(0,0,0,0.3);
-    }
-
-    .flap-score.risk-high   { color: var(--signal-red); }
-    .flap-score.risk-medium { color: var(--signal-amber); }
-    .flap-score.risk-low    { color: var(--signal-green); }
-
-    .splitflap-more {
-        font-family: var(--font-mono);
-        font-size: 0.75rem;
-        color: var(--text-muted);
-        margin-left: 4px;
-    }
-
-    /* ============================================================
        FILTER BAR
        ============================================================ */
     .filter-bar {
@@ -490,20 +382,6 @@
        RESPONSIVE
        ============================================================ */
     @media (max-width: 768px) {
-        .splitflap-hero {
-            padding: 16px 18px;
-        }
-
-        .splitflap-item {
-            font-size: 0.9rem;
-            padding: 4px 10px 4px 8px;
-        }
-
-        .splitflap-item .flap-number {
-            font-size: 0.9rem;
-            min-width: 22px;
-        }
-
         .filter-bar {
             flex-direction: column;
             align-items: stretch;
@@ -530,49 +408,11 @@
             gap: 6px 14px;
         }
     }
-
-    @media (max-width: 480px) {
-        .splitflap-track {
-            gap: 6px 10px;
-        }
-
-        .splitflap-item {
-            font-size: 0.8rem;
-            padding: 4px 8px;
-        }
-
-        .splitflap-item .flap-number {
-            font-size: 0.8rem;
-            min-width: 18px;
-        }
-    }
 </style>
 @endpush
 
 @section('content')
 <div class="container-fluid px-3 px-md-4">
-
-    {{-- ============================================================
-    SPLIT-FLAP HERO — daftar negara risiko tertinggi
-    ============================================================ --}}
-    <div class="splitflap-hero" id="splitflapHero">
-        <div class="splitflap-label">
-            <span class="pulse-dot"></span>
-            <span>MONITORING RISIKO TERTINGGI · REAL-TIME</span>
-            <span style="font-family:var(--font-mono);font-size:0.65rem;color:var(--text-muted);margin-left:auto;">
-                <span id="flapTimestamp">--:--</span> UTC
-            </span>
-        </div>
-        <div class="splitflap-track" id="flapTrack">
-            <div class="splitflap-item">
-                <span class="flap-number">01</span>
-                <span class="flap-country">Memuat...</span>
-            </div>
-        </div>
-        <div style="margin-top:10px;font-size:0.7rem;color:var(--text-muted);font-family:var(--font-mono);letter-spacing:0.04em;">
-            ⚡ diperbarui otomatis · <span id="flapUpdateCount">0</span> siklus
-        </div>
-    </div>
 
     {{-- ============================================================
     FILTER BAR
@@ -695,9 +535,6 @@ document.addEventListener('DOMContentLoaded', function() {
         totalItems: 0,
         lastPage: 1,
         allCountries: [],
-        flipCycle: 0,
-        flipInterval: null,
-        topRiskCountries: [],
     };
 
     // ============================================================
@@ -723,10 +560,6 @@ document.addEventListener('DOMContentLoaded', function() {
         countNeu: $('countNeutral'),
         countNeg: $('countNegative'),
         totalCount: $('totalNewsCount'),
-
-        flapTrack: $('flapTrack'),
-        flapTimestamp: $('flapTimestamp'),
-        flapUpdateCount: $('flapUpdateCount'),
     };
 
     // ============================================================
@@ -795,9 +628,6 @@ document.addEventListener('DOMContentLoaded', function() {
             } else {
                 els.paginationNav.style.display = 'none';
             }
-
-            // update split-flap with top risk countries (from articles or fallback)
-            updateSplitFlapFromArticles(articles);
 
         } catch (err) {
             console.error('Fetch news error:', err);
@@ -938,7 +768,7 @@ document.addEventListener('DOMContentLoaded', function() {
     // ============================================================
     //  COUNTRY DROPDOWN
     // ============================================================
-     async function fetchCountriesForDropdown() {
+    async function fetchCountriesForDropdown() {
         try {
             const resp = await fetch('/api/countries?all=true', {
                 headers: {
@@ -961,6 +791,7 @@ document.addEventListener('DOMContentLoaded', function() {
             console.error('Fetch countries error:', err);
         }
     }
+
     function populateCountryDropdown(countries) {
         const sel = els.country;
         // keep "Semua" option
@@ -973,99 +804,6 @@ document.addEventListener('DOMContentLoaded', function() {
             sel.appendChild(opt);
         });
         if (currentVal) sel.value = currentVal;
-    }
-
-    // ============================================================
-    //  SPLIT-FLAP HERO — update dari articles
-    // ============================================================
-    function updateSplitFlapFromArticles(articles) {
-        // ambil maksimal 5 negara dengan risk score tertinggi dari articles
-        // kalau ga ada, pakai fallback dari data dummy
-        const countryScores = new Map();
-
-        articles.forEach(a => {
-            if (a.country && a.country.id && a.risk_score !== undefined && a.risk_score !== null) {
-                const id = a.country.id;
-                const existing = countryScores.get(id);
-                if (!existing || a.risk_score > existing.score) {
-                    countryScores.set(id, {
-                        id: a.country.id,
-                        name: a.country.name,
-                        iso: a.country.iso_code || '',
-                        score: a.risk_score,
-                        level: a.risk_level || 'medium',
-                    });
-                }
-            }
-        });
-
-        let top = Array.from(countryScores.values())
-            .sort((a, b) => b.score - a.score)
-            .slice(0, 5);
-
-        // fallback kalau kosong
-        if (top.length === 0) {
-            top = [
-                { name: 'China', iso: 'CN', score: 78, level: 'high' },
-                { name: 'Jerman', iso: 'DE', score: 72, level: 'high' },
-                { name: 'Indonesia', iso: 'ID', score: 65, level: 'medium' },
-                { name: 'Australia', iso: 'AU', score: 58, level: 'medium' },
-                { name: 'Brasil', iso: 'BR', score: 44, level: 'low' },
-            ];
-        }
-
-        state.topRiskCountries = top;
-        renderSplitFlap(top);
-        state.flipCycle++;
-        els.flapUpdateCount.textContent = state.flipCycle;
-
-        // update timestamp
-        const now = new Date();
-        els.flapTimestamp.textContent = now.toISOString().slice(11, 16);
-    }
-
-    function renderSplitFlap(countries) {
-        if (!countries || countries.length === 0) {
-            els.flapTrack.innerHTML = `<div class="splitflap-item"><span class="flap-country" style="color:var(--text-muted);">Tidak ada data</span></div>`;
-            return;
-        }
-
-        let html = '';
-        countries.forEach((c, i) => {
-            const num = String(i + 1).padStart(2, '0');
-            const levelClass = c.level === 'high' ? 'risk-high' : c.level === 'medium' ? 'risk-medium' : 'risk-low';
-            const displayScore = typeof c.score === 'number' ? Math.round(c.score) : '--';
-            html += `
-                <div class="splitflap-item">
-                    <span class="flap-number">${num}</span>
-                    <span class="flap-country">${escapeHtml(c.name)}</span>
-                    <span class="flap-score ${levelClass}">${displayScore}</span>
-                </div>
-            `;
-        });
-
-        els.flapTrack.innerHTML = html;
-    }
-
-    // ============================================================
-    //  SPLIT-FLAP AUTO-ROTATE (simulasi "flip")
-    // ============================================================
-    function startSplitFlapRotation() {
-        if (state.flipInterval) clearInterval(state.flipInterval);
-
-        state.flipInterval = setInterval(() => {
-            // putar ulang top risk dari data terakhir, atau reshuffle
-            if (state.topRiskCountries.length > 1) {
-                // rotasi sederhana: pindahkan item pertama ke akhir
-                const rotated = [...state.topRiskCountries];
-                const first = rotated.shift();
-                rotated.push(first);
-                state.topRiskCountries = rotated;
-                renderSplitFlap(rotated);
-                state.flipCycle++;
-                els.flapUpdateCount.textContent = state.flipCycle;
-            }
-        }, 4000); // flip tiap 4 detik
     }
 
     // ============================================================
@@ -1114,13 +852,6 @@ document.addEventListener('DOMContentLoaded', function() {
     //  INIT
     // ============================================================
     fetchNews(1);
-    startSplitFlapRotation();
-
-    // refresh split-flap timestamp every 10s
-    setInterval(() => {
-        const now = new Date();
-        els.flapTimestamp.textContent = now.toISOString().slice(11, 16);
-    }, 10000);
 
 });
 </script>

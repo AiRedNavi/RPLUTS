@@ -45,7 +45,7 @@ async function loadRiskTicker() {
 }
 
 // ------------------------------------------------------------------
-// 2. Pencarian negara (debounced)
+// 2. Pencarian negara (debounced) — AMBIL SEMUA NEGARA
 // ------------------------------------------------------------------
 let searchTimeout = null;
 let activeRegion = '';
@@ -59,21 +59,36 @@ async function searchCountries(query = '') {
     const resultsBox = document.getElementById('tw-country-results');
     resultsBox.innerHTML = '<div class="tw-muted p-2" style="font-size:0.85rem;">Mencari...</div>';
 
+    // Bangun parameter: minta semua negara tanpa limit
     const params = new URLSearchParams();
     if (query) params.set('search', query);
     if (activeRegion) params.set('region', activeRegion);
+    // Tambahkan parameter untuk memastikan semua negara diambil
+    params.set('limit', '999'); // atau 'all=true' sesuai endpoint
+    params.set('all', 'true'); // double safety
 
     try {
         const res = await fetch(`${API_BASE}/countries?${params.toString()}`);
         const json = await res.json();
-        const countries = json.data || [];
+        // Data bisa dalam bentuk array langsung atau di dalam key 'data'
+        let countries = [];
+        if (Array.isArray(json)) {
+            countries = json;
+        } else if (json.data && Array.isArray(json.data)) {
+            countries = json.data;
+        } else {
+            countries = [];
+        }
 
         if (countries.length === 0) {
             resultsBox.innerHTML = '<div class="tw-muted p-2" style="font-size:0.85rem;">Tidak ada negara ditemukan.</div>';
             return;
         }
 
-        resultsBox.innerHTML = countries.map((c) => `
+        // Batasi tampilan 50 agar tidak overload
+        const display = countries.slice(0, 50);
+
+        resultsBox.innerHTML = display.map((c) => `
             <button type="button" class="list-group-item list-group-item-action bg-transparent"
                     style="border-color: var(--ink-750); color: var(--paper);"
                     data-iso="${c.iso_code}">
@@ -113,41 +128,50 @@ async function loadCountryDetail(isoCode) {
     detail.classList.remove('d-none');
 
     try {
+        // Fetch data country dan news secara paralel
         const [countryRes, newsRes] = await Promise.all([
             fetch(`${API_BASE}/countries/${isoCode}`),
             fetch(`${API_BASE}/news?country=${isoCode}`),
         ]);
 
-        const countryJson = await countryRes.json();
-        const newsJson = await newsRes.json();
-        const country = countryJson.data;
+        // Handle country response
+        let country = null;
+        if (countryRes.ok) {
+            const countryJson = await countryRes.json();
+            country = countryJson.data || countryJson; // fleksibel
+        } else {
+            console.warn('Country detail not found for', isoCode);
+            // Tampilkan pesan error
+            document.getElementById('tw-detail-iso').textContent = isoCode;
+            document.getElementById('tw-detail-name').textContent = 'Data tidak ditemukan';
+            return;
+        }
 
         // Header
-        document.getElementById('tw-detail-iso').textContent = country.iso_code;
-        document.getElementById('tw-detail-name').textContent = country.name;
+        document.getElementById('tw-detail-iso').textContent = country.iso_code || isoCode;
+        document.getElementById('tw-detail-name').textContent = country.name || isoCode;
 
         // Risk score
         const risk = country.risk_score;
         const badge = document.getElementById('tw-detail-risk-badge');
 
         if (risk) {
-            badge.textContent = risk.risk_level.toUpperCase();
+            badge.textContent = risk.risk_level ? risk.risk_level.toUpperCase() : '—';
             badge.className = `tw-badge ${riskBadgeClass(risk.risk_level)}`;
-            document.getElementById('tw-total-score').textContent = parseFloat(risk.total_score).toFixed(1);
+            document.getElementById('tw-total-score').textContent = risk.total_score != null ? parseFloat(risk.total_score).toFixed(1) : '—';
         } else {
             badge.textContent = 'BELUM DIHITUNG';
             badge.className = 'tw-badge tw-badge--neutral';
             document.getElementById('tw-total-score').textContent = '—';
         }
 
-        // Ambil detail risk breakdown lengkap dari endpoint /risk/{iso}
+        // Ambil detail risk breakdown dari endpoint terpisah
         try {
             const riskDetailRes = await fetch(`${API_BASE}/risk/${isoCode}`);
-
             if (riskDetailRes.ok) {
                 const riskDetailJson = await riskDetailRes.json();
-                const breakdown = riskDetailJson.data.breakdown;
-
+                // Fleksibel: data bisa di dalam 'data' atau langsung
+                const breakdown = riskDetailJson.data?.breakdown || riskDetailJson.breakdown || {};
                 updateScoreBar('weather', breakdown.weather_score);
                 updateScoreBar('inflation', breakdown.inflation_score);
                 updateScoreBar('news', breakdown.news_score);
@@ -158,60 +182,85 @@ async function loadCountryDetail(isoCode) {
         }
 
         // Cuaca
-        const weather = country.weather;
-        document.getElementById('tw-weather-temp').textContent = weather?.temperature != null ? `${weather.temperature}°C` : '—';
+        const weather = country.weather || {};
+        document.getElementById('tw-weather-temp').textContent = weather.temperature != null ? `${weather.temperature}°C` : '—';
 
         const stormEl = document.getElementById('tw-weather-storm');
-        if (weather?.storm_risk_level) {
+        if (weather.storm_risk_level) {
             stormEl.innerHTML = `<span class="tw-badge ${riskBadgeClass(weather.storm_risk_level)}">${weather.storm_risk_level.toUpperCase()}</span>`;
         } else {
             stormEl.textContent = '—';
         }
 
-        // Indikator ekonomi
-        const indicator = country.latest_indicator;
-        document.getElementById('tw-econ-gdp').textContent = indicator?.gdp ? `$${formatNumber(Math.round(indicator.gdp))}` : '—';
-        document.getElementById('tw-econ-inflation').textContent = indicator?.inflation_rate != null ? `${indicator.inflation_rate}%` : '—';
-        document.getElementById('tw-econ-population').textContent = indicator?.population ? formatNumber(indicator.population) : '—';
+        // Indikator ekonomi (mungkin ada di country.latest_indicator atau langsung)
+        const indicator = country.latest_indicator || country.economic_indicator || {};
+        document.getElementById('tw-econ-gdp').textContent = indicator.gdp ? `$${formatNumber(Math.round(indicator.gdp))}` : '—';
+        document.getElementById('tw-econ-inflation').textContent = indicator.inflation_rate != null ? `${indicator.inflation_rate}%` : '—';
+        document.getElementById('tw-econ-population').textContent = indicator.population ? formatNumber(indicator.population) : '—';
         document.getElementById('tw-econ-currency').textContent = country.currency?.code || '—';
 
         // Berita
-        renderNewsList(newsJson.data || []);
+        let articles = [];
+        if (newsRes.ok) {
+            const newsJson = await newsRes.json();
+            // Fleksibel: data bisa array atau di dalam 'data'
+            articles = Array.isArray(newsJson) ? newsJson : (newsJson.data || []);
+        } else {
+            console.warn('News endpoint returned error', newsRes.status);
+        }
+        renderNewsList(articles);
+
     } catch (err) {
         console.error('loadCountryDetail error:', err);
+        // Tampilkan pesan error di UI
+        document.getElementById('tw-detail-name').textContent = 'Error loading data';
     }
 }
 
 function updateScoreBar(key, score) {
     const value = parseFloat(score) || 0;
-    document.getElementById(`tw-score-${key}`).textContent = value.toFixed(0);
+    const el = document.getElementById(`tw-score-${key}`);
+    if (el) el.textContent = value.toFixed(0);
 
     const bar = document.getElementById(`tw-bar-${key}`);
-    bar.style.width = `${value}%`;
-    bar.style.background = value >= 67 ? 'var(--signal-red)' : value >= 34 ? 'var(--signal-amber)' : 'var(--signal-green)';
+    if (bar) {
+        bar.style.width = `${Math.min(value, 100)}%`;
+        bar.style.background = value >= 67 ? 'var(--signal-red)' : value >= 34 ? 'var(--signal-amber)' : 'var(--signal-green)';
+    }
 }
 
 function renderNewsList(articles) {
     const container = document.getElementById('tw-news-list');
 
-    if (articles.length === 0) {
+    if (!articles || articles.length === 0) {
         container.innerHTML = '<p class="tw-muted mb-0" style="font-size:0.9rem;">Belum ada berita yang terkait langsung dengan negara ini.</p>';
         return;
     }
 
-    container.innerHTML = articles.slice(0, 5).map((article) => `
-        <div class="py-2 border-bottom tw-divider">
-            <div class="d-flex align-items-start justify-content-between gap-3">
-                <a href="${article.source_url}" target="_blank" rel="noopener" class="fw-medium" style="color: var(--paper);">
-                    ${article.title}
-                </a>
-                <span class="tw-badge ${sentimentBadgeClass(article.sentiment.label)} flex-shrink-0">
-                    ${(article.sentiment.label || 'pending').toUpperCase()}
-                </span>
+    container.innerHTML = articles.slice(0, 5).map((article) => {
+        // Sentinel bisa ada di article.sentiment_label atau article.sentiment.label
+        let sentimentLabel = article.sentiment_label || article.sentiment?.label || 'neutral';
+        let sentimentScore = article.sentiment_score ?? article.sentiment?.score ?? null;
+
+        const source = article.source_name || article.source || 'Unknown source';
+        const category = article.category || 'General';
+        const title = article.title || 'Untitled';
+        const url = article.source_url || article.url || '#';
+
+        return `
+            <div class="py-2 border-bottom tw-divider">
+                <div class="d-flex align-items-start justify-content-between gap-3">
+                    <a href="${url}" target="_blank" rel="noopener" class="fw-medium" style="color: var(--paper);">
+                        ${title}
+                    </a>
+                    <span class="tw-badge ${sentimentBadgeClass(sentimentLabel)} flex-shrink-0">
+                        ${sentimentLabel.toUpperCase()}
+                    </span>
+                </div>
+                <div class="tw-muted" style="font-size: 0.78rem;">${source} · ${category}</div>
             </div>
-            <div class="tw-muted" style="font-size: 0.78rem;">${article.source_name || 'Unknown source'} · ${article.category}</div>
-        </div>
-    `).join('');
+        `;
+    }).join('');
 }
 
 // ------------------------------------------------------------------
@@ -222,9 +271,11 @@ document.addEventListener('DOMContentLoaded', () => {
     searchCountries();
 
     const searchInput = document.getElementById('tw-country-search');
-    searchInput.addEventListener('input', (e) => {
-        debounceSearch(() => searchCountries(e.target.value));
-    });
+    if (searchInput) {
+        searchInput.addEventListener('input', (e) => {
+            debounceSearch(() => searchCountries(e.target.value));
+        });
+    }
 
     document.querySelectorAll('#tw-region-filters button').forEach((btn) => {
         btn.addEventListener('click', () => {
