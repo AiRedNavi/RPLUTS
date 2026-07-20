@@ -49,4 +49,8 @@ class DashboardController extends Controller
     {
         return view('dashboard.comparison');
     }
+    public function watchlist(): View
+    {
+        return view('dashboard.watchlist');
+    }
 }

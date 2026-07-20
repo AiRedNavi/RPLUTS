@@ -9,3 +9,4 @@ Route::get('/currency', [DashboardController::class, 'currency']);
 Route::get('/news', [DashboardController::class, 'news']);
 Route::get('/ports', [DashboardController::class, 'ports']);
 Route::get('/comparison', [DashboardController::class, 'comparison']);
+Route::get('/watchlist', [DashboardController::class, 'watchlist']);
