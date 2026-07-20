@@ -781,17 +781,9 @@ document.addEventListener('DOMContentLoaded', function() {
             state.totalItems = meta.total || articles.length;
             state.lastPage = meta.last_page || 1;
 
-            // update country dropdown (first time only)
-            if (state.allCountries.length === 0 && articles.length > 0) {
-                // try to extract unique countries from articles
-                const countryMap = new Map();
-                articles.forEach(a => {
-                    if (a.country && a.country.id) {
-                        countryMap.set(a.country.id, a.country);
-                    }
-                });
-                state.allCountries = Array.from(countryMap.values());
-                populateCountryDropdown(state.allCountries);
+            // update country dropdown only once on first load
+            if (state.allCountries.length === 0) {
+                await fetchCountriesForDropdown();
             }
 
             renderNews(articles);
@@ -946,6 +938,29 @@ document.addEventListener('DOMContentLoaded', function() {
     // ============================================================
     //  COUNTRY DROPDOWN
     // ============================================================
+     async function fetchCountriesForDropdown() {
+        try {
+            const resp = await fetch('/api/countries?all=true', {
+                headers: {
+                    'Accept': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            });
+            if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+            const data = await resp.json();
+            // data bisa array langsung atau { data: [...] }
+            let countries = [];
+            if (Array.isArray(data)) {
+                countries = data;
+            } else if (data.data && Array.isArray(data.data)) {
+                countries = data.data;
+            }
+            state.allCountries = countries;
+            populateCountryDropdown(countries);
+        } catch (err) {
+            console.error('Fetch countries error:', err);
+        }
+    }
     function populateCountryDropdown(countries) {
         const sel = els.country;
         // keep "Semua" option

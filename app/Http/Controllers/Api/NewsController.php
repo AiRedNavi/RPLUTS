@@ -28,8 +28,15 @@ class NewsController extends Controller
             $query->where('sentiment_label', $sentiment);
         }
 
-        if ($countryIso = $request->query('country')) {
-            $query->whereHas('country', fn ($q) => $q->where('iso_code', strtoupper($countryIso)));
+         if ($countryId = $request->query('country_id')) {
+            $query->where('country_id', $countryId);
+        }
+
+        if ($search = $request->query('search')) {
+            $query->where(function ($q) use ($search) {
+                $q->where('title', 'ILIKE', "%{$search}%")
+                  ->orWhere('summary', 'ILIKE', "%{$search}%");
+            });
         }
 
         $news = $query->latest('published_at')->paginate(15);

@@ -27,6 +27,14 @@ class CountryController extends Controller
             $query->where('region', $region);
         }
 
+         // Jika parameter 'all' diminta, kembalikan semua negara tanpa pagination
+        if ($request->query('all') === 'true') {
+            $countries = $query->orderBy('name')->get();
+            return response()->json([
+                'data' => CountryResource::collection($countries),
+            ]);
+        }
+        
         $countries = $query->orderBy('name')->paginate(20);
 
         return response()->json([

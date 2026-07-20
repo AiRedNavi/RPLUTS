@@ -590,6 +590,7 @@
             let currentPage = 1;
             const perPage = 15;
             let currentSearch = '';
+            let currentMarkers = []; // Store marker references for current page
 
             // ---- Map ----
             let map = null;
@@ -714,14 +715,18 @@
             }
 
             // ---- Update Map ----
-            function updateMap(ports) {
+            function updateMap(ports, pagePorts = null) {
                 if (!map) return;
                 markersLayer.clearLayers();
+                currentMarkers = [];
+
+                // If pagePorts is provided, only show those ports on map
+                const portsToShow = pagePorts || ports;
 
                 const bounds = L.latLngBounds();
                 let hasValid = false;
 
-                ports.forEach(p => {
+                portsToShow.forEach(p => {
                     const lat = parseFloat(p.latitude);
                     const lng = parseFloat(p.longitude);
                     if (isNaN(lat) || isNaN(lng)) return;
@@ -737,6 +742,7 @@
                         .bindPopup(popup)
                         .addTo(markersLayer);
 
+                    currentMarkers.push({ marker, port: p });
                     bounds.extend([lat, lng]);
                     hasValid = true;
                 });
@@ -757,10 +763,11 @@
                 loadingState.style.display = 'none';
                 listItems.style.display = 'block';
                 emptyState.style.display = 'none';
-                listCount.textContent = ports.length;
+                listCount.textContent = `${pageItems.length} / ${ports.length}`;
 
                 if (pageItems.length === 0) {
                     listItems.innerHTML = `<div class="state-empty"><span>Tidak ada data di halaman ini</span></div>`;
+                    updateMap(ports, []); // Clear map when no items
                     return;
                 }
 
@@ -782,6 +789,9 @@
                 });
                 listItems.innerHTML = html;
 
+                // Update map to show only current page ports
+                updateMap(ports, pageItems);
+
                 // Click -> fly to port
                 document.querySelectorAll('.port-list-item').forEach(el => {
                     el.addEventListener('click', function() {
@@ -789,12 +799,11 @@
                         const lng = parseFloat(this.dataset.lng);
                         if (!isNaN(lat) && !isNaN(lng) && map) {
                             map.flyTo([lat, lng], 10, { duration: 1.2 });
-                            // Cari marker & buka popup
-                            markersLayer.eachLayer(function(layer) {
-                                if (layer.getLatLng) {
-                                    const pos = layer.getLatLng();
-                                    if (Math.abs(pos.lat - lat) < 0.001 && Math.abs(pos.lng - lng) < 0.001) {
-                                        layer.openPopup();
+                             currentMarkers.forEach(({ marker, port }) => {
+                                const mLat = marker.getLatLng().lat;
+                                const mLng = marker.getLatLng().lng;
+                                if (Math.abs(mLat - lat) < 0.001 && Math.abs(mLng - lng) < 0.001) {
+                                    marker.openPopup();
                                     }
                                 }
                             });

@@ -27,15 +27,12 @@ class PortController extends Controller
             $query->whereHas('country', fn ($q) => $q->where('iso_code', strtoupper($countryIso)));
         }
 
-        $ports = $query->orderBy('name')->paginate(30);
+        // Get all ports (no pagination) to allow client-side pagination and filtering
+        $ports = $query->orderBy('name')->limit(100)->get();
 
         return response()->json([
             'data' => PortResource::collection($ports),
-            'meta' => [
-                'current_page' => $ports->currentPage(),
-                'last_page' => $ports->lastPage(),
-                'total' => $ports->total(),
-            ],
+            'total' => $ports->count(),
         ]);
     }
 

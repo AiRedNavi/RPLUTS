@@ -21,11 +21,9 @@ class NewsArticleResource extends JsonResource
             'source_name' => $this->source_name,
             'source_url' => $this->source_url,
             'category' => $this->category,
-            'sentiment' => [
-                'label' => $this->sentiment_label,
-                'positive_score' => $this->positive_score,
-                'negative_score' => $this->negative_score,
-            ],
+            'sentiment_label' => $this->sentiment_label,
+            'positive_score' => $this->positive_score,
+            'negative_score' => $this->negative_score,
             'published_at' => $this->published_at?->toIso8601String(),
         ];
     }
