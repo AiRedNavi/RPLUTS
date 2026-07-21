@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>@yield('title', 'Dashboard') · TRADEWATCH</title>
 
     <!-- Bootstrap 5 -->
@@ -256,6 +257,20 @@
                 </div>
             </div>
             <div class="tw-clock" id="tw-clock">--:--:-- UTC</div>
+            <div class="d-flex align-items-center gap-3">
+                @auth
+                    @if (auth()->user()->isAdmin())
+                        <a href="{{ route('admin.users.index') }}" class="tw-nav-link">Admin</a>
+                    @endif
+                    <span class="tw-muted font-mono" style="font-size:0.8rem;">{{ auth()->user()->name }}</span>
+                    <form method="POST" action="{{ route('auth.logout') }}" class="d-inline m-0">
+                        @csrf
+                        <button type="submit" class="tw-nav-link border-0 bg-transparent">Logout</button>
+                    </form>
+                @else
+                    <a href="{{ route('auth.login') }}" class="tw-nav-link">Login</a>
+                @endauth
+            </div>
         </div>
     </nav>
 

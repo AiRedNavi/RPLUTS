@@ -8,13 +8,16 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class Watchlist extends Model
 {
-    use HasFactory;
-
-    const UPDATED_AT = null; // tabel ini hanya punya created_at
+    public $timestamps = false;
 
     protected $fillable = [
         'user_id',
         'country_id',
+        'created_at',
+    ];
+
+    protected $casts = [
+        'created_at' => 'datetime',
     ];
 
     public function user(): BelongsTo

@@ -1,13 +1,11 @@
 /**
  * dashboard.js — Global Country Dashboard
- * Konsumsi endpoint REST API internal (/api/*) pakai fetch(), tanpa
- * framework frontend tambahan, sesuai spesifikasi (Bootstrap 5 + AJAX + ES6).
  */
 
 const API_BASE = '/api';
 
 // ------------------------------------------------------------------
-// 1. Ticker split-flap: negara risiko tertinggi
+// 1. Ticker split-flap
 // ------------------------------------------------------------------
 async function loadRiskTicker() {
     const track = document.getElementById('tw-ticker-track');
@@ -34,7 +32,6 @@ async function loadRiskTicker() {
             `;
         }).join('');
 
-        // Klik item ticker langsung buka detail negara itu
         track.querySelectorAll('[data-iso]').forEach((el) => {
             el.addEventListener('click', () => loadCountryDetail(el.dataset.iso));
         });
@@ -45,10 +42,12 @@ async function loadRiskTicker() {
 }
 
 // ------------------------------------------------------------------
-// 2. Pencarian negara (debounced) — AMBIL SEMUA NEGARA
+// 2. Pencarian negara dengan cache
 // ------------------------------------------------------------------
 let searchTimeout = null;
 let activeRegion = '';
+
+window.countryCache = {}; // cache dengan key iso_code
 
 function debounceSearch(callback, delay = 350) {
     clearTimeout(searchTimeout);
@@ -59,18 +58,15 @@ async function searchCountries(query = '') {
     const resultsBox = document.getElementById('tw-country-results');
     resultsBox.innerHTML = '<div class="tw-muted p-2" style="font-size:0.85rem;">Mencari...</div>';
 
-    // Bangun parameter: minta semua negara tanpa limit
     const params = new URLSearchParams();
     if (query) params.set('search', query);
     if (activeRegion) params.set('region', activeRegion);
-    // Tambahkan parameter untuk memastikan semua negara diambil
-    params.set('limit', '999'); // atau 'all=true' sesuai endpoint
-    params.set('all', 'true'); // double safety
+    params.set('limit', '999');
+    params.set('all', 'true');
 
     try {
         const res = await fetch(`${API_BASE}/countries?${params.toString()}`);
         const json = await res.json();
-        // Data bisa dalam bentuk array langsung atau di dalam key 'data'
         let countries = [];
         if (Array.isArray(json)) {
             countries = json;
@@ -80,12 +76,18 @@ async function searchCountries(query = '') {
             countries = [];
         }
 
+        // Simpan cache
+        countries.forEach(c => {
+            if (c.iso_code) {
+                window.countryCache[c.iso_code] = c;
+            }
+        });
+
         if (countries.length === 0) {
             resultsBox.innerHTML = '<div class="tw-muted p-2" style="font-size:0.85rem;">Tidak ada negara ditemukan.</div>';
             return;
         }
 
-        // Batasi tampilan 50 agar tidak overload
         const display = countries.slice(0, 50);
 
         resultsBox.innerHTML = display.map((c) => `
@@ -107,7 +109,7 @@ async function searchCountries(query = '') {
 }
 
 // ------------------------------------------------------------------
-// 3. Detail negara terpilih: risk breakdown, cuaca, ekonomi, berita
+// 3. Detail negara (menggunakan cache untuk id)
 // ------------------------------------------------------------------
 function riskBadgeClass(level) {
     return { low: 'tw-badge--low', medium: 'tw-badge--medium', high: 'tw-badge--high' }[level] || 'tw-badge--medium';
@@ -127,29 +129,48 @@ async function loadCountryDetail(isoCode) {
     const detail = document.getElementById('tw-country-detail');
     detail.classList.remove('d-none');
 
-    try {
-        // Fetch data country dan news secara paralel
-        const [countryRes, newsRes] = await Promise.all([
-            fetch(`${API_BASE}/countries/${isoCode}`),
-            fetch(`${API_BASE}/news?country=${isoCode}`),
-        ]);
+    // Ambil data country dari API
+    let country = null;
+    let countryId = null;
 
-        // Handle country response
-        let country = null;
+    try {
+        const countryRes = await fetch(`${API_BASE}/countries/${isoCode}`);
         if (countryRes.ok) {
             const countryJson = await countryRes.json();
-            country = countryJson.data || countryJson; // fleksibel
+            country = countryJson.data || countryJson;
         } else {
             console.warn('Country detail not found for', isoCode);
-            // Tampilkan pesan error
-            document.getElementById('tw-detail-iso').textContent = isoCode;
-            document.getElementById('tw-detail-name').textContent = 'Data tidak ditemukan';
-            return;
+            // fallback: gunakan cache jika ada
+            country = window.countryCache[isoCode] || null;
+            if (!country) {
+                document.getElementById('tw-detail-iso').textContent = isoCode;
+                document.getElementById('tw-detail-name').textContent = 'Data tidak ditemukan';
+                return;
+            }
         }
+
+        // Jika country tidak memiliki id, coba ambil dari cache
+        if (country && !country.id) {
+            const cached = window.countryCache[isoCode];
+            if (cached && cached.id) {
+                country.id = cached.id;
+            }
+        }
+
+        // Pastikan countryId tersedia
+        countryId = country?.id || null;
 
         // Header
         document.getElementById('tw-detail-iso').textContent = country.iso_code || isoCode;
         document.getElementById('tw-detail-name').textContent = country.name || isoCode;
+
+        // Set countryId ke tombol watchlist
+        const watchlistBtn = document.getElementById('tw-btn-add-watchlist');
+        if (watchlistBtn && countryId) {
+            watchlistBtn.dataset.countryId = countryId;
+        } else if (watchlistBtn) {
+            watchlistBtn.dataset.countryId = ''; // kosong jika tidak ada
+        }
 
         // Risk score
         const risk = country.risk_score;
@@ -165,12 +186,11 @@ async function loadCountryDetail(isoCode) {
             document.getElementById('tw-total-score').textContent = '—';
         }
 
-        // Ambil detail risk breakdown dari endpoint terpisah
+        // Ambil risk breakdown (opsional)
         try {
             const riskDetailRes = await fetch(`${API_BASE}/risk/${isoCode}`);
             if (riskDetailRes.ok) {
                 const riskDetailJson = await riskDetailRes.json();
-                // Fleksibel: data bisa di dalam 'data' atau langsung
                 const breakdown = riskDetailJson.data?.breakdown || riskDetailJson.breakdown || {};
                 updateScoreBar('weather', breakdown.weather_score);
                 updateScoreBar('inflation', breakdown.inflation_score);
@@ -192,27 +212,34 @@ async function loadCountryDetail(isoCode) {
             stormEl.textContent = '—';
         }
 
-        // Indikator ekonomi (mungkin ada di country.latest_indicator atau langsung)
+        // Indikator ekonomi
         const indicator = country.latest_indicator || country.economic_indicator || {};
         document.getElementById('tw-econ-gdp').textContent = indicator.gdp ? `$${formatNumber(Math.round(indicator.gdp))}` : '—';
         document.getElementById('tw-econ-inflation').textContent = indicator.inflation_rate != null ? `${indicator.inflation_rate}%` : '—';
         document.getElementById('tw-econ-population').textContent = indicator.population ? formatNumber(indicator.population) : '—';
         document.getElementById('tw-econ-currency').textContent = country.currency?.code || '—';
 
-        // Berita
+        // ===== Fetch berita menggunakan country_id (jika ada) =====
         let articles = [];
-        if (newsRes.ok) {
-            const newsJson = await newsRes.json();
-            // Fleksibel: data bisa array atau di dalam 'data'
-            articles = Array.isArray(newsJson) ? newsJson : (newsJson.data || []);
+        if (countryId) {
+            try {
+                const newsRes = await fetch(`${API_BASE}/news?country_id=${countryId}`);
+                if (newsRes.ok) {
+                    const newsJson = await newsRes.json();
+                    articles = Array.isArray(newsJson) ? newsJson : (newsJson.data || []);
+                } else {
+                    console.warn('News endpoint returned error', newsRes.status);
+                }
+            } catch (err) {
+                console.warn('Gagal memuat berita:', err);
+            }
         } else {
-            console.warn('News endpoint returned error', newsRes.status);
+            console.warn('Tidak ada countryId, berita tidak difilter.');
         }
         renderNewsList(articles);
 
     } catch (err) {
         console.error('loadCountryDetail error:', err);
-        // Tampilkan pesan error di UI
         document.getElementById('tw-detail-name').textContent = 'Error loading data';
     }
 }
@@ -238,10 +265,7 @@ function renderNewsList(articles) {
     }
 
     container.innerHTML = articles.slice(0, 5).map((article) => {
-        // Sentinel bisa ada di article.sentiment_label atau article.sentiment.label
         let sentimentLabel = article.sentiment_label || article.sentiment?.label || 'neutral';
-        let sentimentScore = article.sentiment_score ?? article.sentiment?.score ?? null;
-
         const source = article.source_name || article.source || 'Unknown source';
         const category = article.category || 'General';
         const title = article.title || 'Untitled';
@@ -264,7 +288,40 @@ function renderNewsList(articles) {
 }
 
 // ------------------------------------------------------------------
-// 4. Event listeners
+// 4. Watchlist functions
+// ------------------------------------------------------------------
+async function addToWatchlist(countryId) {
+    if (!countryId) {
+        alert('Tidak ada negara yang dipilih.');
+        return;
+    }
+
+    try {
+        const response = await fetch('/api/watchlist', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content || '',
+            },
+            body: JSON.stringify({ country_id: countryId })
+        });
+
+        const result = await response.json();
+
+        if (response.ok) {
+            alert(result.message || 'Berhasil ditambahkan ke watchlist.');
+            // Opsional: ubah teks tombol menjadi "✓ Watchlist" atau disable
+        } else {
+            alert(result.message || 'Gagal menambahkan ke watchlist.');
+        }
+    } catch (err) {
+        alert('Terjadi kesalahan jaringan. Periksa koneksi internet.');
+        console.error('Watchlist error:', err);
+    }
+}
+
+// ------------------------------------------------------------------
+// 5. Event listeners
 // ------------------------------------------------------------------
 document.addEventListener('DOMContentLoaded', () => {
     loadRiskTicker();
@@ -290,6 +347,16 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
-    // Refresh ticker tiap 60 detik supaya kesan "live monitoring"
+    // Watchlist button listener
+    const watchlistBtn = document.getElementById('tw-btn-add-watchlist');
+    if (watchlistBtn) {
+        watchlistBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            const countryId = this.dataset.countryId;
+            addToWatchlist(countryId);
+        });
+    }
+
+    // Refresh ticker tiap 60 detik
     setInterval(loadRiskTicker, 60000);
 });

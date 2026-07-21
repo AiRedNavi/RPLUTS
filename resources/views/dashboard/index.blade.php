@@ -72,7 +72,12 @@
                             <div class="tw-eyebrow" id="tw-detail-iso">—</div>
                             <h2 class="font-display mb-0" id="tw-detail-name">—</h2>
                         </div>
-                        <span class="tw-badge" id="tw-detail-risk-badge">—</span>
+                       <div class="d-flex align-items-center gap-2">
+                            <span class="tw-badge" id="tw-detail-risk-badge">—</span>
+                            <button id="tw-btn-add-watchlist" class="btn btn-sm btn-outline-light" data-country-id="">
+                                + Watchlist
+                            </button>
+                        </div>
                     </div>
 
                     <div class="row g-4 mb-4">
