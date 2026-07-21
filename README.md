@@ -107,8 +107,10 @@ Enam `Service` class (satu per API eksternal) + `Console Command` untuk menjalan
 - [x] **Fase 3 & 4** — Sentiment Analysis & Risk Scoring Engine
 - [x] **Fase 5** — Dashboard & Visualisasi (Country Dashboard, Weather Map, Currency, Ports, News, Comparison)
 - [x] **Fase 6** — Fitur User & Admin (auth, watchlist, user/port/article management, sinkronisasi manual)
-- [ ] **Fase 7** — Finalisasi REST API & Dokumentasi
-- [ ] **Fase 8** — Testing, Optimasi, & Persiapan Presentasi
+- [x] **Fase 7** — Finalisasi REST API & Dokumentasi
+- [x] **Fase 8** — Testing, Optimasi, & Persiapan Presentasi
+
+**Status: Selesai — seluruh fase pengembangan (Fase 1–8) telah diimplementasikan.**
 
 ---
 
