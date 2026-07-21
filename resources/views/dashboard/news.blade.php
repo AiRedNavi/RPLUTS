@@ -1,7 +1,7 @@
 {{-- resources/views/dashboard/news.blade.php --}}
 @extends('layouts.app')
 
-@section('title', 'Intelijen Berita')
+@section('title', 'Berita')
 
 @push('styles')
 {{-- Fonts --}}

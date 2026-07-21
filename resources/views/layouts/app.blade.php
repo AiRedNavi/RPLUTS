@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <title>@yield('title', 'Dashboard') · TRADEWATCH</title>
+    <title>@yield('title', 'Dashboard') · AMPHOREUS</title>
 
     <!-- Bootstrap 5 -->
     <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.3/css/bootstrap.min.css" rel="stylesheet">
@@ -245,7 +245,7 @@
     <nav class="tw-navbar">
         <div class="container-fluid px-4 d-flex align-items-center justify-content-between flex-wrap gap-2">
             <div class="d-flex align-items-center gap-4">
-                <a href="{{ url('/') }}" class="tw-brand">ASTRAL<span>MONITOR</span></a>
+                <a href="{{ url('/') }}" class="tw-brand">AMPHO<span>REUS</span></a>
                 <div class="d-none d-lg-flex gap-1">
                     <a href="{{ url('/') }}" class="tw-nav-link active">Dashboard</a>
                     <a href="{{ url('/weather') }}" class="tw-nav-link">Cuaca</a>

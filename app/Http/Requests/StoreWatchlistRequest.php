@@ -17,4 +17,12 @@ class StoreWatchlistRequest extends FormRequest
             'country_id' => ['required', 'integer', 'exists:countries,id'],
         ];
     }
+
+    public function messages(): array
+    {
+        return [
+            'country_id.required' => 'Negara wajib dipilih.',
+            'country_id.exists'   => 'Negara tidak ditemukan.',
+        ];
+    }
 }

@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'AstralMonitor Dashboard')
+@section('title', 'Dashboard')
 
 @section('content')
 
