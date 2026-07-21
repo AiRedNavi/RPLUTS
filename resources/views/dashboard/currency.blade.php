@@ -55,8 +55,13 @@
             <!-- Grafik tren -->
             <div class="col-lg-8">
                 <div class="tw-card">
-                    <div class="d-flex align-items-center justify-content-between mb-3">
+                    <div class="d-flex align-items-center justify-content-between mb-3 flex-wrap gap-2">
                         <div class="tw-eyebrow mb-0">Tren Kurs — <span id="tw-chart-pair-label" class="font-mono">USD → —</span></div>
+                        @auth
+                            <button type="button" id="tw-btn-sync-currency" class="btn btn-sm btn-outline-light">
+                                Perbarui Kurs
+                            </button>
+                        @endauth
                     </div>
                     <div id="tw-currency-chart-wrap">
                         <canvas id="tw-currency-chart"></canvas>
@@ -89,4 +94,39 @@
 
 @push('scripts')
     <script src="{{ asset('js/charts/currency-trend.js') }}"></script>
+    <script>
+        document.getElementById('tw-btn-sync-currency')?.addEventListener('click', async function () {
+            const btn = this;
+            const originalText = btn.textContent;
+
+            btn.disabled = true;
+            btn.textContent = '⏳ Memperbarui...';
+
+            try {
+                const res = await fetch('{{ route('currency.sync') }}', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content || '',
+                        'Accept': 'application/json',
+                    },
+                });
+
+                const json = await res.json();
+
+                if (res.ok && json.success) {
+                    btn.textContent = '✅ Berhasil, memuat ulang...';
+                    setTimeout(() => window.location.reload(), 1000);
+                } else {
+                    alert(json.message || 'Gagal memperbarui kurs.');
+                    btn.textContent = originalText;
+                    btn.disabled = false;
+                }
+            } catch (err) {
+                alert('Terjadi kesalahan jaringan: ' + err.message);
+                btn.textContent = originalText;
+                btn.disabled = false;
+            }
+        });
+    </script>
 @endpush

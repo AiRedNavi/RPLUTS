@@ -4,13 +4,12 @@
 @section('title', 'Kelola User — Admin')
 
 @section('content')
-<div class="container-fluid px-4 py-4">
     <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-4">
         <div>
             <div class="tw-eyebrow">Admin / User Management</div>
             <h2 class="font-display mb-0">Kelola User</h2>
         </div>
-        <a href="{{ url('/') }}" class="tw-nav-link">← Kembali ke Dashboard</a>
+        @include('admin.partials.nav')
     </div>
 
     <div class="row g-3 mb-4">

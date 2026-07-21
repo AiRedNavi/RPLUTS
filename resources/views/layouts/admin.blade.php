@@ -43,8 +43,17 @@
         <aside class="admin-sidebar">
             <a href="{{ route('admin.users.index') }}" class="admin-sidebar__brand">TRADEWATCH<br><small style="font-size:.65rem; color:#8ea0c2; font-weight:400;">Admin Panel</small></a>
             <nav class="admin-sidebar__nav">
-                <a href="{{ route('admin.users.index') }}" class="{{ request()->routeIs('admin.users.*') ? 'active' : '' }}">Users</a>
-                {{-- tambahkan link Ports, Articles, Risk Weights di sini saat controller-nya sudah dibuat --}}
+                {{-- Users --}}
+                <a href="{{ route('admin.users.index') }}" class="{{ request()->routeIs('admin.users.*') ? 'active' : '' }}">👤 Users</a>
+
+                {{-- Ports --}}
+                <a href="{{ route('admin.ports.index') }}" class="{{ request()->routeIs('admin.ports.*') ? 'active' : '' }}">⚓ Ports</a>
+
+                {{-- Articles --}}
+                <a href="{{ route('admin.articles.index') }}" class="{{ request()->routeIs('admin.articles.*') ? 'active' : '' }}">📄 Articles</a>
+
+                {{-- Risk Weights --}}
+                <a href="{{ route('admin.risk-weights.index') }}" class="{{ request()->routeIs('admin.risk-weights.*') ? 'active' : '' }}">⚖️ Risk Weights</a>
             </nav>
             <hr style="border-color:#223050;">
             <a href="{{ route('dashboard.index') }}" class="d-block small text-secondary text-decoration-none mb-2">← Kembali ke Dashboard</a>
