@@ -1,6 +1,26 @@
 @extends('layouts.app')
 
-@section('title', 'Watchlist Saya')
+@section('title', 'Watchlist Saya · AMPHOREUS')
+
+@push('styles')
+<style>
+    .tw-watchlist-chart-wrap {
+        height: 140px;
+        position: relative;
+    }
+
+    .tw-watchlist-basis-note {
+        height: 140px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+        font-size: 0.78rem;
+        color: var(--mist);
+        padding: 0 12px;
+    }
+</style>
+@endpush
 
 @section('content')
 <div class="container-fluid px-4 py-4">
@@ -18,10 +38,10 @@
         <a href="{{ url('/') }}" class="btn btn-outline-light btn-sm">Ke Dashboard</a>
     </div>
 
-    <div id="tw-watchlist-grid" class="row g-3"></div>
+    <div id="tw-watchlist-grid" class="row g-4"></div>
 </div>
 @endsection
 
 @push('scripts')
-<script src="{{ asset('js/watchlist.js') }}"></script>
+<script src="{{ asset('js/watchlist.js') }}?v={{ filemtime(public_path('js/watchlist.js')) }}"></script>
 @endpush

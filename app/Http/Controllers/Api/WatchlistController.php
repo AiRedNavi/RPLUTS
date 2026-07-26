@@ -10,36 +10,33 @@ use Illuminate\Support\Facades\Auth;
 
 class WatchlistController extends Controller
 {
-    public function index(Request $request)
-    {
-        $watchlists = Watchlist::with(['country.currency', 'country.riskScore'])
-            ->where('user_id', Auth::id())
-            ->latest('created_at')
-            ->get();
+public function index(Request $request)
+{
+    $watchlists = Watchlist::with(['country.currency', 'country.riskScore'])
+        ->where('user_id', Auth::id())
+        ->latest('created_at')
+        ->get();
 
-        return response()->json([
-            'data' => $watchlists->map(function (Watchlist $item) {
-                $country = $item->country;
+    return response()->json([
+        'data' => $watchlists->map(function (Watchlist $item) {
+            $country = $item->country;
 
-                return [
-                    'id'         => $item->id,
-                    'country_id' => $country->id,
-                    'iso_code'   => $country->iso_code,
-                    'name'       => $country->name,
-                    'region'     => $country->region,
-                    'currency'   => $country->currency ? [
-                        'code'   => $country->currency->code,
-                        'symbol' => $country->currency->symbol,
-                    ] : null,
-                    'risk_score' => $country->riskScore ? [
-                        'total_score' => $country->riskScore->total_score,
-                        'risk_level'  => $country->riskScore->risk_level,
-                    ] : null,
-                    'added_at'   => $item->created_at,
-                ];
-            }),
-        ]);
-    }
+            return [
+                'id'         => $item->id,
+                'country_id' => $country->id,
+                'iso_code'   => $country->iso_code,
+                'name'       => $country->name,
+                'region'     => $country->region,
+                'currency_code' => $country->currency->code ?? null,
+                'risk_score' => $country->riskScore ? [
+                    'total_score' => $country->riskScore->total_score,
+                    'risk_level'  => $country->riskScore->risk_level,
+                ] : null,
+                'added_at' => $item->created_at,
+            ];
+        }),
+    ]);
+}
 
     public function store(StoreWatchlistRequest $request)
     {
