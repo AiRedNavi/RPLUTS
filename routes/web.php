@@ -9,6 +9,7 @@ use App\Http\Controllers\Admin\ArticleManagementController;
 use App\Http\Controllers\Admin\NewsSyncController;
 use App\Http\Controllers\Admin\AdminDashboardController;
 use App\Http\Controllers\CurrencySyncController;
+use App\Http\Controllers\CronController;
 
 Route::get('/', [DashboardController::class, 'index']);
 Route::get('/weather', [DashboardController::class, 'weather']);
@@ -17,6 +18,8 @@ Route::get('/news', [DashboardController::class, 'news']);
 Route::get('/ports', [DashboardController::class, 'ports']);
 Route::get('/comparison', [DashboardController::class, 'comparison']);
 Route::get('/watchlist', [DashboardController::class, 'watchlist'])->middleware('auth');
+Route::get('/cron/run-schedule', [CronController::class, 'runSchedule']);
+Route::get('/cron/run-command', [CronController::class, 'runSingleCommand']);
 
 // ------------------------------------------------------------------
 // Auth
