@@ -53,14 +53,14 @@ class CronController extends Controller
         }
 
         $allowedCommands = [
-            'app:fetch-countries',
-            'app:fetch-economic-indicators',
-            'app:fetch-weather',
-            'app:fetch-exchange-rates',
-            'app:fetch-news',
-            'app:risk-calculate',
-            'app:fetch-ports',
-            'app:analyze-sentiment',
+            'fetch:countries',
+            'fetch:economic-indicators',
+            'fetch:weather',
+            'fetch:exchange-rates',
+            'fetch:news',
+            'fetch:ports',
+            'risk:calculate',
+            'analyze:sentiment',
         ];
 
         $command = $request->query('command');
