@@ -48,17 +48,26 @@
                 <p class="tw-muted mb-0" style="font-size:0.88rem;">Sebaran suhu, curah hujan, dan risiko badai per negara.</p>
             </div>
 
-            <div class="d-flex gap-2 align-items-center">
-                <span class="tw-eyebrow mb-0">Legenda</span>
-                <span class="d-flex align-items-center gap-1" style="font-size:0.8rem;">
-                    <span class="tw-storm-dot" style="background: var(--signal-green);"></span> Rendah
-                </span>
-                <span class="d-flex align-items-center gap-1" style="font-size:0.8rem;">
-                    <span class="tw-storm-dot" style="background: var(--signal-amber);"></span> Sedang
-                </span>
-                <span class="d-flex align-items-center gap-1" style="font-size:0.8rem;">
-                    <span class="tw-storm-dot" style="background: var(--signal-red);"></span> Tinggi
-                </span>
+            <div class="d-flex flex-column align-items-end gap-2">
+                <div class="d-flex gap-2 align-items-center">
+                    <span class="tw-eyebrow mb-0">Legenda</span>
+                    <span class="d-flex align-items-center gap-1" style="font-size:0.8rem;">
+                        <span class="tw-storm-dot" style="background: var(--signal-green);"></span> Rendah
+                    </span>
+                    <span class="d-flex align-items-center gap-1" style="font-size:0.8rem;">
+                        <span class="tw-storm-dot" style="background: var(--signal-amber);"></span> Sedang
+                    </span>
+                    <span class="d-flex align-items-center gap-1" style="font-size:0.8rem;">
+                        <span class="tw-storm-dot" style="background: var(--signal-red);"></span> Tinggi
+                    </span>
+                </div>
+
+                <div class="d-flex align-items-center gap-2">
+                    <span id="tw-fetch-status" class="tw-muted" style="font-size:0.78rem;"></span>
+                    <button id="tw-fetch-weather-btn" type="button" class="btn btn-sm" style="background: var(--ink-900); color: var(--paper); border: 1px solid var(--ink-750);">
+                        Perbarui Data Cuaca
+                    </button>
+                </div>
             </div>
         </div>
 

@@ -55,7 +55,8 @@ Route::get('/currency/history', [CurrencyController::class, 'history']);
 // ------------------------------------------------------------------
 Route::get('/weather', [WeatherController::class, 'index']);
 Route::get('/weather/{idOrIsoCode}/history', [WeatherController::class, 'history']);
-
+Route::post('/weather/fetch', [WeatherController::class, 'fetchNow'])
+    ->middleware('throttle:5,1'); // opsional: batasi max 5x klik/menit per IP
 // ------------------------------------------------------------------
 // Country Comparison Engine
 // ------------------------------------------------------------------
