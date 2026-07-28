@@ -4,8 +4,10 @@ nixPkgs = ["php83", "php83Packages.composer", "nodejs_20"]
 [phases.install]
 cmds = [
   "composer install --no-dev --optimize-autoloader --no-interaction",
+  "npm install -g npm@latest",
   "rm -rf node_modules package-lock.json",
-  "npm install",
+  "npm install --include=optional",
+  "npm install @rolldown/binding-linux-x64-gnu --save-optional --force || true",
   "npm run build"
 ]
 
